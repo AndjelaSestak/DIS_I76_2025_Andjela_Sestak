@@ -81,6 +81,8 @@ public class ReservationService {
     }
 
     public ReservationResponse createReservationFallback(ReservationRequest request, Exception ex) {
+        if (ex instanceof RoomNotAvailableException) throw (RoomNotAvailableException) ex;
+        if (ex instanceof IllegalArgumentException) throw (IllegalArgumentException) ex;
         log.error("Hotel service unavailable, cannot create reservation: {}", ex.getMessage());
         throw new IllegalStateException("Hotel service is currently unavailable. Please try again later.");
     }
@@ -132,6 +134,8 @@ public class ReservationService {
     }
 
     public ReservationResponse cancelReservationFallback(Long id, Exception ex) {
+        if (ex instanceof ReservationNotFoundException) throw (ReservationNotFoundException) ex;
+        if (ex instanceof IllegalArgumentException) throw (IllegalArgumentException) ex;
         log.error("Hotel service unavailable during cancellation: {}", ex.getMessage());
         throw new IllegalStateException("Hotel service is currently unavailable. Please try again later.");
     }
