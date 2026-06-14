@@ -60,7 +60,7 @@ public class RoomController {
         return ResponseEntity.ok(roomService.updateRoom(id, request));
     }
 
-    @PatchMapping("/{id}/availability")
+    @PutMapping("/{id}/availability")
     @Operation(summary = "Update room availability (internal use)")
     public ResponseEntity<RoomResponse> updateRoomAvailability(@PathVariable Long id,
                                                                 @RequestParam Boolean available) {
