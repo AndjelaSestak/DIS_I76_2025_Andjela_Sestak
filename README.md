@@ -371,6 +371,36 @@ Sistem automatski učitava početne podatke pri prvom pokretanju.
 - **Hotel Novi Sad** (4 zvezdice, Novi Sad) — 3 sobe: Single (80€), Double (130€), Twin (140€)
 - **Mountain Resort Kopaonik** (4 zvezdice, Kopaonik) — 3 sobe: Single (100€), Double (160€), Suite (400€)
 
+## CI/CD Pipeline
+
+Projekat koristi **GitHub Actions** za automatizovani CI/CD proces.
+
+### Pipeline Faze
+
+```
+BUILD → TEST → PACKAGE → DEPLOY-STAGING → DEPLOY-PRODUCTION
+```
+
+### Workflow Triggeri
+- **Push na `main`**: Pokreće ceo pipeline uključujući deploy na Staging i Production
+- **Push na `develop`**: Pokreće BUILD + TEST + PACKAGE faze
+- **Pull Request**: Pokreće BUILD + TEST faze
+
+### Faze
+
+| Faza | Opis |
+|------|------|
+| **Build** | Kompajlira sve servise (`mvn clean compile`) |
+| **Test** | Pokreće testove za svaki servis paralelno u matrix strategiji |
+| **Package** | Pravi JAR i Docker image za svaki servis |
+| **Deploy Staging** | Deploy na staging okruženje (na `main` branch) |
+| **Deploy Production** | Deploy na produkciju sa kreiranjem release taga (manual approval) |
+
+### Artifakti
+- **Test rezultati**: JUnit Surefire izveštaji za svaki servis
+- **Coverage izveštaji**: JaCoCo izveštaji za business servise
+- **Docker images**: Sačuvani kao GitHub Actions artifakti
+
 ## Napomene
 
 ### Arhitekturni Paterni
