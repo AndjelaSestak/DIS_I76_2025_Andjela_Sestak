@@ -1,0 +1,369 @@
+{
+  "info": {
+    "name": "Hotel Reservation System - Demo",
+    "_postman_id": "dis-i76-2025-andjela-sestak",
+    "description": "Demo kolekcija za odbranu DIS projekta - Hotel Reservation System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "gateway",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "reservationId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Provera sistema",
+      "item": [
+        {
+          "name": "API Gateway - health",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/actuator/health",
+              "host": ["{{gateway}}"],
+              "path": ["actuator", "health"]
+            },
+            "description": "Proveri da API Gateway radi"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Hoteli i sobe",
+      "item": [
+        {
+          "name": "Lista svih hotela",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/api/hotels",
+              "host": ["{{gateway}}"],
+              "path": ["api", "hotels"]
+            },
+            "description": "3 hotela iz seed data: Belgrade, Novi Sad, Kopaonik"
+          }
+        },
+        {
+          "name": "Sve dostupne sobe",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/api/rooms/available",
+              "host": ["{{gateway}}"],
+              "path": ["api", "rooms", "available"]
+            },
+            "description": "Sobe sa available: true - pre rezervacije"
+          }
+        },
+        {
+          "name": "Soba po ID-u (proveri available)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/api/rooms/2",
+              "host": ["{{gateway}}"],
+              "path": ["api", "rooms", "2"]
+            },
+            "description": "Posle rezervacije - available postaje false"
+          }
+        },
+        {
+          "name": "Kreiraj hotel (novi)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Hotel Zlatibor\",\n  \"city\": \"Zlatibor\",\n  \"address\": \"Partizanske vode bb\",\n  \"description\": \"Planinski hotel sa spa centrom\",\n  \"stars\": 4,\n  \"amenities\": \"WiFi, Spa, Ski, Restaurant\"\n}"
+            },
+            "url": {
+              "raw": "{{gateway}}/api/hotels",
+              "host": ["{{gateway}}"],
+              "path": ["api", "hotels"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Korisnici (JWT Auth)",
+      "item": [
+        {
+          "name": "Registracija novog korisnika",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"anasestak\",\n  \"email\": \"ana.sestak@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"Ana\",\n  \"lastName\": \"Sestak\",\n  \"phone\": \"+381601234567\"\n}"
+            },
+            "url": {
+              "raw": "{{gateway}}/api/auth/register",
+              "host": ["{{gateway}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login - dobij JWT token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"johndoe\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{gateway}}/api/auth/login",
+              "host": ["{{gateway}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Seed korisnici:\njohndoe / password123\nadmin / admin123"
+          }
+        },
+        {
+          "name": "Lista korisnika bez auth (ocekivano 403)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/api/users",
+              "host": ["{{gateway}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Vraca 403 - JWT zastita radi!"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Rezervacije",
+      "item": [
+        {
+          "name": "*** GLAVNI DEMO - Kreiraj rezervaciju ***",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"roomId\": 2,\n  \"guestName\": \"Ana Sestak\",\n  \"guestEmail\": \"ana.sestak@example.com\",\n  \"checkInDate\": \"2026-08-01\",\n  \"checkOutDate\": \"2026-08-05\"\n}"
+            },
+            "url": {
+              "raw": "{{gateway}}/api/reservations",
+              "host": ["{{gateway}}"],
+              "path": ["api", "reservations"]
+            },
+            "description": "Ovaj jedan poziv pokrece citav lanac:\n1. Reservation Service proverava sobu (OpenFeign -> Hotel Service)\n2. Kreira rezervaciju u bazi\n3. Salje ReservationEvent na RabbitMQ\n4. Payment Service prima event i kreira placanje AUTOMATSKI\n5. Payment Service salje PaymentEvent na RabbitMQ\n6. Notification Service kreira email notifikaciju AUTOMATSKI\n\nSoba 2 = Double u Belgrade, 180 EUR/noc x 4 noci = 720 EUR"
+          }
+        },
+        {
+          "name": "Lista svih rezervacija",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/api/reservations",
+              "host": ["{{gateway}}"],
+              "path": ["api", "reservations"]
+            }
+          }
+        },
+        {
+          "name": "Rezervacija po ID-u",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/api/reservations/{{reservationId}}",
+              "host": ["{{gateway}}"],
+              "path": ["api", "reservations", "{{reservationId}}"]
+            }
+          }
+        },
+        {
+          "name": "Rezervacije korisnika (userId=1)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/api/reservations/user/1",
+              "host": ["{{gateway}}"],
+              "path": ["api", "reservations", "user", "1"]
+            }
+          }
+        },
+        {
+          "name": "Otkazi rezervaciju",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{gateway}}/api/reservations/{{reservationId}}/cancel",
+              "host": ["{{gateway}}"],
+              "path": ["api", "reservations", "{{reservationId}}", "cancel"]
+            },
+            "description": "Status -> CANCELLED, soba postaje available: true ponovo"
+          }
+        },
+        {
+          "name": "Otkazi vec otkazanu (ocekivano 400)",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{gateway}}/api/reservations/{{reservationId}}/cancel",
+              "host": ["{{gateway}}"],
+              "path": ["api", "reservations", "{{reservationId}}", "cancel"]
+            },
+            "description": "Vraca 400 Bad Request - validacija radi"
+          }
+        },
+        {
+          "name": "Nepostojeca rezervacija (ocekivano 404)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/api/reservations/9999",
+              "host": ["{{gateway}}"],
+              "path": ["api", "reservations", "9999"]
+            },
+            "description": "Vraca 404 Not Found"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Placanja (automatski via RabbitMQ)",
+      "item": [
+        {
+          "name": "Lista svih placanja",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/api/payments",
+              "host": ["{{gateway}}"],
+              "path": ["api", "payments"]
+            },
+            "description": "Niko nije eksplicitno kreirao payment - nastao automatski via RabbitMQ!"
+          }
+        },
+        {
+          "name": "Placanja po statusu (COMPLETED)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/api/payments/status/COMPLETED",
+              "host": ["{{gateway}}"],
+              "path": ["api", "payments", "status", "COMPLETED"]
+            }
+          }
+        },
+        {
+          "name": "Placanja korisnika (userId=1)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/api/payments/user/1",
+              "host": ["{{gateway}}"],
+              "path": ["api", "payments", "user", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Notifikacije (automatski via RabbitMQ)",
+      "item": [
+        {
+          "name": "Lista svih notifikacija",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/api/notifications",
+              "host": ["{{gateway}}"],
+              "path": ["api", "notifications"]
+            },
+            "description": "Email notifikacija kreirana automatski - niko je nije eksplicitno pozvao!"
+          }
+        },
+        {
+          "name": "Notifikacije po statusu (SENT)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/api/notifications?status=SENT",
+              "host": ["{{gateway}}"],
+              "path": ["api", "notifications"],
+              "query": [
+                { "key": "status", "value": "SENT" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Notifikacije po primaocu",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{gateway}}/api/notifications/recipient/ana.sestak@example.com",
+              "host": ["{{gateway}}"],
+              "path": ["api", "notifications", "recipient", "ana.sestak@example.com"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Circuit Breaker demo",
+      "item": [
+        {
+          "name": "Korak 1 - Rezervacija dok Hotel Service RADI",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"roomId\": 5,\n  \"guestName\": \"Test Korisnik\",\n  \"guestEmail\": \"test@example.com\",\n  \"checkInDate\": \"2026-09-01\",\n  \"checkOutDate\": \"2026-09-03\"\n}"
+            },
+            "url": {
+              "raw": "{{gateway}}/api/reservations",
+              "host": ["{{gateway}}"],
+              "path": ["api", "reservations"]
+            },
+            "description": "Radi normalno - vraca 201 Created"
+          }
+        },
+        {
+          "name": "Korak 2 - Rezervacija dok Hotel Service NE RADI",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"roomId\": 6,\n  \"guestName\": \"Test Korisnik\",\n  \"guestEmail\": \"test@example.com\",\n  \"checkInDate\": \"2026-09-10\",\n  \"checkOutDate\": \"2026-09-12\"\n}"
+            },
+            "url": {
+              "raw": "{{gateway}}/api/reservations",
+              "host": ["{{gateway}}"],
+              "path": ["api", "reservations"]
+            },
+            "description": "Pre slanja ovog zahteva pokreni u terminalu:\ndocker compose stop hotel-service\n\nVraca graceful fallback poruku umesto pada sistema!\n\nPosle demo-a:\ndocker compose start hotel-service"
+          }
+        }
+      ]
+    }
+  ]
+}

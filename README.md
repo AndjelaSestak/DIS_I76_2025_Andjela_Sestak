@@ -91,8 +91,8 @@ graph TB
 User Service pruža autentifikaciju i upravljanje korisnicima sa JWT tokenima.
 
 ### Javni Endpoints (bez autentifikacije)
-- `POST /api/users/register` - Registracija novog korisnika
-- `POST /api/users/login` - Login i dobijanje JWT tokena
+- `POST /api/auth/register` - Registracija novog korisnika
+- `POST /api/auth/login` - Login i dobijanje JWT tokena
 
 ### Zaštićeni Endpoints
 - `GET /api/users/{id}` - Detalji korisnika
@@ -106,7 +106,7 @@ User Service pruža autentifikaciju i upravljanje korisnicima sa JWT tokenima.
 Request:
 ```json
 {
-  "usernameOrEmail": "john.doe@example.com",
+  "username": "johndoe",
   "password": "password123"
 }
 ```
@@ -360,11 +360,11 @@ cd api-gateway && mvn spring-boot:run
 Sistem automatski učitava početne podatke pri prvom pokretanju.
 
 ### Korisnici
-| Email | Lozinka | Uloga |
-|-------|---------|-------|
-| admin@hotelreservation.com | admin123 | ADMIN |
-| john.doe@example.com | password123 | USER |
-| jane.doe@example.com | password123 | USER |
+| Username | Email | Lozinka | Uloga |
+|----------|-------|---------|-------|
+| admin | admin@hotelreservation.com | admin123 | ADMIN |
+| johndoe | john.doe@example.com | password123 | USER |
+| janedoe | jane.doe@example.com | password123 | USER |
 
 ### Hoteli i Sobe
 - **Grand Hotel Belgrade** (5 zvezdica, Beograd) — 4 sobe: Single (120€), Double (180€), Deluxe (280€), Suite (350€)
