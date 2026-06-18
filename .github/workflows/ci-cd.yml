@@ -13,7 +13,7 @@ permissions:
 
 env:
   JAVA_VERSION: '21'
-  MAVEN_OPTS: -Xmx1024m
+  MAVEN_OPTS: -Xmx1024m -Dhttps.protocols=TLSv1.2,TLSv1.3 -Djava.security.egd=file:/dev/./urandom
 
 jobs:
   # ============================================
