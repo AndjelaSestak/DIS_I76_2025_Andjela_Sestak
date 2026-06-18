@@ -40,11 +40,27 @@ jobs:
         distribution: 'corretto'
         cache: 'maven'
 
-    - name: Fix Java trust store permissions
-      run: sudo chmod 644 $JAVA_HOME/lib/security/cacerts
+    - name: Debug and fix Java trust store
+      run: |
+        echo "=== JAVA_HOME ===" && echo $JAVA_HOME
+        echo "=== Java version ===" && java -version
+        echo "=== Maven version ===" && mvn --version
+        CACERTS=$(find $JAVA_HOME -name "cacerts" | head -1)
+        echo "=== Trust store: $CACERTS ==="
+        sudo chmod 644 $CACERTS
+        ls -la $CACERTS
+        STORETYPE=$(keytool -list -keystore $CACERTS -storepass changeit 2>&1 | grep "Keystore type:" | awk '{print $3}')
+        echo "=== Keystore type: $STORETYPE ==="
 
     - name: Build with Maven
-      run: mvn clean compile -DskipTests
+      run: |
+        CACERTS=$(find $JAVA_HOME -name "cacerts" | head -1)
+        STORETYPE=$(keytool -list -keystore $CACERTS -storepass changeit 2>&1 | grep "Keystore type:" | awk '{print $3}' | tr '[:lower:]' '[:upper:]')
+        echo "Using trust store: $CACERTS (type: $STORETYPE)"
+        mvn clean compile -DskipTests \
+          -Djavax.net.ssl.trustStore=$CACERTS \
+          -Djavax.net.ssl.trustStorePassword=changeit \
+          -Djavax.net.ssl.trustStoreType=${STORETYPE:-PKCS12}
 
     - name: Cache Maven packages
       uses: actions/cache@v4
@@ -90,13 +106,21 @@ jobs:
         distribution: 'corretto'
         cache: 'maven'
 
-    - name: Fix Java trust store permissions
-      run: sudo chmod 644 $JAVA_HOME/lib/security/cacerts
+    - name: Fix Java trust store
+      run: |
+        CACERTS=$(find $JAVA_HOME -name "cacerts" | head -1)
+        sudo chmod 644 $CACERTS
+        STORETYPE=$(keytool -list -keystore $CACERTS -storepass changeit 2>&1 | grep "Keystore type:" | awk '{print $3}' | tr '[:lower:]' '[:upper:]')
+        echo "CACERTS=$CACERTS" >> $GITHUB_ENV
+        echo "STORETYPE=${STORETYPE:-PKCS12}" >> $GITHUB_ENV
 
     - name: Run tests for ${{ matrix.service }}
       run: |
         cd ${{ matrix.service }}
-        mvn test
+        mvn test \
+          -Djavax.net.ssl.trustStore=$CACERTS \
+          -Djavax.net.ssl.trustStorePassword=changeit \
+          -Djavax.net.ssl.trustStoreType=$STORETYPE
 
     - name: Upload test results
       if: always()
@@ -166,13 +190,21 @@ jobs:
         distribution: 'corretto'
         cache: 'maven'
 
-    - name: Fix Java trust store permissions
-      run: sudo chmod 644 $JAVA_HOME/lib/security/cacerts
+    - name: Fix Java trust store
+      run: |
+        CACERTS=$(find $JAVA_HOME -name "cacerts" | head -1)
+        sudo chmod 644 $CACERTS
+        STORETYPE=$(keytool -list -keystore $CACERTS -storepass changeit 2>&1 | grep "Keystore type:" | awk '{print $3}' | tr '[:lower:]' '[:upper:]')
+        echo "CACERTS=$CACERTS" >> $GITHUB_ENV
+        echo "STORETYPE=${STORETYPE:-PKCS12}" >> $GITHUB_ENV
 
     - name: Build JAR
       run: |
         cd ${{ matrix.service }}
-        mvn clean package -DskipTests
+        mvn clean package -DskipTests \
+          -Djavax.net.ssl.trustStore=$CACERTS \
+          -Djavax.net.ssl.trustStorePassword=changeit \
+          -Djavax.net.ssl.trustStoreType=$STORETYPE
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
