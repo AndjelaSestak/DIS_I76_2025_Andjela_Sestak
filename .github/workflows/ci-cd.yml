@@ -31,7 +31,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         java-version: ${{ env.JAVA_VERSION }}
-        distribution: 'temurin'
+        distribution: 'corretto'
         cache: 'maven'
 
     - name: Build with Maven
@@ -72,7 +72,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         java-version: ${{ env.JAVA_VERSION }}
-        distribution: 'temurin'
+        distribution: 'corretto'
         cache: 'maven'
 
     - name: Run tests for ${{ matrix.service }}
@@ -139,7 +139,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         java-version: ${{ env.JAVA_VERSION }}
-        distribution: 'temurin'
+        distribution: 'corretto'
         cache: 'maven'
 
     - name: Build JAR
