@@ -14,6 +14,10 @@ public class RabbitMQConfig {
     public static final String PAYMENT_COMPLETED_QUEUE = "payment.completed.queue";
     public static final String PAYMENT_COMPLETED_ROUTING_KEY = "payment.completed";
 
+    public static final String RESERVATION_EXCHANGE = "reservation.exchange";
+    public static final String RESERVATION_CREATED_QUEUE = "reservation.created.queue";
+    public static final String RESERVATION_CREATED_ROUTING_KEY = "reservation.created";
+
     @Bean
     public TopicExchange paymentExchange() {
         return new TopicExchange(PAYMENT_EXCHANGE);
@@ -27,6 +31,21 @@ public class RabbitMQConfig {
     @Bean
     public Binding paymentCompletedBinding(Queue paymentCompletedQueue, TopicExchange paymentExchange) {
         return BindingBuilder.bind(paymentCompletedQueue).to(paymentExchange).with(PAYMENT_COMPLETED_ROUTING_KEY);
+    }
+
+    @Bean
+    public TopicExchange reservationExchange() {
+        return new TopicExchange(RESERVATION_EXCHANGE);
+    }
+
+    @Bean
+    public Queue reservationCreatedQueue() {
+        return QueueBuilder.durable(RESERVATION_CREATED_QUEUE).build();
+    }
+
+    @Bean
+    public Binding reservationCreatedBinding(Queue reservationCreatedQueue, TopicExchange reservationExchange) {
+        return BindingBuilder.bind(reservationCreatedQueue).to(reservationExchange).with(RESERVATION_CREATED_ROUTING_KEY);
     }
 
     @Bean

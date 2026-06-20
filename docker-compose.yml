@@ -67,6 +67,7 @@ services:
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=false
     networks:
       - hotel-network
     restart: on-failure
@@ -163,6 +164,7 @@ services:
       - DB_HOST=user-db
       - DB_USER=postgres
       - DB_PASSWORD=postgres
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=false
     networks:
       - hotel-network
     restart: on-failure
@@ -185,6 +187,7 @@ services:
       - DB_HOST=hotel-db
       - DB_USER=postgres
       - DB_PASSWORD=postgres
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=false
     networks:
       - hotel-network
     restart: on-failure
@@ -210,6 +213,7 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - RABBITMQ_HOST=rabbitmq
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=false
     networks:
       - hotel-network
     restart: on-failure
@@ -235,6 +239,7 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - RABBITMQ_HOST=rabbitmq
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=false
     networks:
       - hotel-network
     restart: on-failure
@@ -260,6 +265,7 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - RABBITMQ_HOST=rabbitmq
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=false
     networks:
       - hotel-network
     restart: on-failure

@@ -8,71 +8,159 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
+      httpclient:
+        connect-timeout: 2000
+        response-timeout: 10s
       routes:
         - id: user-service
           uri: lb://user-service
           predicates:
             - Path=/api/auth/**, /api/users/**
           filters:
+            - name: Retry
+              args:
+                retries: 3
+                statuses: SERVICE_UNAVAILABLE,BAD_GATEWAY,GATEWAY_TIMEOUT
+                exceptions:
+                  - java.io.IOException
+                  - java.util.concurrent.TimeoutException
+                methods: GET,POST,PUT,DELETE,PATCH
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 800ms
+                  factor: 2
+                  basedOnPreviousValue: false
             - name: CircuitBreaker
               args:
                 name: user-service
-                fallbackUri: forward:/fallback/user-service
 
         - id: hotel-service
           uri: lb://hotel-service
           predicates:
             - Path=/api/hotels/**, /api/rooms/**
           filters:
+            - name: Retry
+              args:
+                retries: 3
+                statuses: SERVICE_UNAVAILABLE,BAD_GATEWAY,GATEWAY_TIMEOUT
+                exceptions:
+                  - java.io.IOException
+                  - java.util.concurrent.TimeoutException
+                methods: GET,POST,PUT,DELETE,PATCH
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 800ms
+                  factor: 2
+                  basedOnPreviousValue: false
             - name: CircuitBreaker
               args:
                 name: hotel-service
-                fallbackUri: forward:/fallback/hotel-service
 
         - id: reservation-service
           uri: lb://reservation-service
           predicates:
             - Path=/api/reservations/**
           filters:
+            - name: Retry
+              args:
+                retries: 3
+                statuses: SERVICE_UNAVAILABLE,BAD_GATEWAY,GATEWAY_TIMEOUT
+                exceptions:
+                  - java.io.IOException
+                  - java.util.concurrent.TimeoutException
+                methods: GET,PUT,DELETE,PATCH
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 800ms
+                  factor: 2
+                  basedOnPreviousValue: false
             - name: CircuitBreaker
               args:
                 name: reservation-service
-                fallbackUri: forward:/fallback/reservation-service
 
         - id: payment-service
           uri: lb://payment-service
           predicates:
             - Path=/api/payments/**
           filters:
+            - name: Retry
+              args:
+                retries: 3
+                statuses: SERVICE_UNAVAILABLE,BAD_GATEWAY,GATEWAY_TIMEOUT
+                exceptions:
+                  - java.io.IOException
+                  - java.util.concurrent.TimeoutException
+                methods: GET,PUT,DELETE,PATCH
+                backoff:
+                  firstBackoff: 100ms
+                  maxBackoff: 800ms
+                  factor: 2
+                  basedOnPreviousValue: false
             - name: CircuitBreaker
               args:
                 name: payment-service
-                fallbackUri: forward:/fallback/payment-service
 
         - id: notification-service
           uri: lb://notification-service
           predicates:
             - Path=/api/notifications/**
 
+    loadbalancer:
+      cache:
+        enabled: false
+      eager-load:
+        clients:
+          - user-service
+          - hotel-service
+          - reservation-service
+          - payment-service
+          - notification-service
+
+eureka:
+  client:
+    registry-fetch-interval-seconds: 5
+
 resilience4j:
+  timelimiter:
+    instances:
+      user-service:
+        timeout-duration: 10s
+      hotel-service:
+        timeout-duration: 10s
+      reservation-service:
+        timeout-duration: 10s
+      payment-service:
+        timeout-duration: 10s
   circuitbreaker:
     instances:
       user-service:
-        sliding-window-size: 10
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
         failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
+        register-health-indicator: true
       hotel-service:
-        sliding-window-size: 10
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
         failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
+        register-health-indicator: true
       reservation-service:
-        sliding-window-size: 10
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
         failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
+        register-health-indicator: true
       payment-service:
-        sliding-window-size: 10
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
         failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
+        wait-duration-in-open-state: 15s
+        permitted-number-of-calls-in-half-open-state: 5
+        register-health-indicator: true
 
 management:
   endpoints:
